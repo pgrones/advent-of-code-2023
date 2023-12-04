@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
+import (
+	solution "advent-of-code/day2"
+	"os"
+)
 
 func main() {
-    fmt.Println("Hello, World!")
+    solution.Solve(os.Args[1])
 }
