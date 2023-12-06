@@ -1,6 +1,7 @@
 package day2
 
 import (
+	utils "advent-of-code/utils"
 	"bufio"
 	"fmt"
 	"os"
@@ -8,12 +9,6 @@ import (
 	"strings"
 	"time"
 )
-
-func check(e error) {
-    if e != nil {
-        panic(e)
-    }
-}
 
 var CUBE_LIMITS map[string]int
 
@@ -28,9 +23,9 @@ func checkGame(gameLine string) (int, bool) {
     split := strings.Split(gameLine, ": ")
     gameID, err := strconv.Atoi(split[0])
     
-    check(err)
+    utils.CheckError(err)
     gameLine = split[1]    
-    check(err)
+    utils.CheckError(err)
 
     rounds := strings.Split(gameLine, "; ")
 
@@ -40,7 +35,7 @@ func checkGame(gameLine string) (int, bool) {
         for j := 0; j < len(perColor); j++{
             split := strings.Split(perColor[j], " ")
             amount, err := strconv.Atoi(split[0])
-            check(err)
+            utils.CheckError(err)
             color := split[1]
 
             if amount > CUBE_LIMITS[color] {
@@ -64,9 +59,9 @@ func powerGame(gameLine string) int {
     split := strings.Split(gameLine, ": ")
     _, err := strconv.Atoi(split[0])
     
-    check(err)
+    utils.CheckError(err)
     gameLine = split[1]    
-    check(err)
+    utils.CheckError(err)
 
     rounds := strings.Split(gameLine, "; ")
 
@@ -76,7 +71,7 @@ func powerGame(gameLine string) int {
         for j := 0; j < len(perColor); j++{
             split := strings.Split(perColor[j], " ")
             amount, err := strconv.Atoi(split[0])
-            check(err)
+            utils.CheckError(err)
             color := split[1]
 
             if amount > MAX_CUBES[color] {
@@ -89,11 +84,12 @@ func powerGame(gameLine string) int {
 
 
 func Solve(runAs string) {
+	dir, err := os.Getwd()
+    utils.CheckError(err)
+
+    var inputFile = fmt.Sprintf("%s/day2/input_%s.txt", dir, runAs)
 
     // ###### PART 1 ######
-
-	dir, err := os.Getwd()
-    check(err)
 
     SCORE_I := 0
     SCORE_II := 0
@@ -107,10 +103,10 @@ func Solve(runAs string) {
     println("Green cube limit:", CUBE_LIMITS["green"])
     println("Blue cube limit:", CUBE_LIMITS["blue"])
 
-	var inputFile = fmt.Sprintf("%s/day2/input_%s.txt", dir, runAs)
+	
 
 	readFile, err := os.Open(inputFile)
-    check(err)
+    utils.CheckError(err)
     fileScanner := bufio.NewScanner(readFile)
     fileScanner.Split(bufio.ScanLines)
   

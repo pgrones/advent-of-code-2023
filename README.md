@@ -4,22 +4,32 @@ holly jolly x-mas :---)
 
 We're alternating between Rust and Go after each day~
 
+Even days -> Go
+
+Odd days -> Rust
+
 ### Running the solutions
 
-Each solution has two input files ending in either "p" or "j". To choose which one to use, simply add its letter as an argument when running the solution.
+Add the number of the day you want to run as the first argument when running the solution.
 
-To choose the solution for a specific day, uncomment the corresponding line in the main file.
+Each solution has two input files ending in either "p" or "j". Add its letter as the last argument when running the solution.
 
 #### Rust
 
 ```
 > cd rust
-> cargo run [p j]
+> cargo run [day number] [p j]
+
+Example:
+> cargo run 1 p
 ```
 
 #### Go
 
 ```
 > cd go
-> go run . [p j]
+> go run . [day number] [p j]
+
+Example:
+> go run . 2 j
 ```
