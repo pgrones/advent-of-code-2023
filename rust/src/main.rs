@@ -12,6 +12,9 @@ use day5::solve as day5_solve;
 mod day7;
 use day7::solve as day7_solve;
 
+mod day9;
+use day9::solve as day9_solve;
+
 use std::env;
 
 fn main() {
@@ -26,6 +29,7 @@ fn main() {
         3 => day3_solve(run_as),
         5 => day5_solve(run_as),
         7 => day7_solve(run_as),
+        9 => day9_solve(run_as),
         _ => Ok(()),
     } {
         Err(err) => println!("{}", err),
