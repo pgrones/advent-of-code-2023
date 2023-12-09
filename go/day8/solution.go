@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	// "math"
 )
@@ -77,33 +78,59 @@ func update_nodes(turn string, nodes []*Node) []*Node {
 	return nodes
 }
 
-func walk_rollout(nodes []*Node) int {
-	iter_count := 0
-	var all_Z bool
-	
-	for {
-		if iter_count % 10000000 == 0 {
-			println(iter_count)
-		}
-		all_Z = true
-		
-		for i := range nodes {
-			if string([]rune(nodes[i].name)[2]) != "Z" {
-				all_Z = false
-			}
-		}
+func findCycles(nodes []*Node) ([][]int, []int) {
+	chunks := [][]int{}
+	remainders := []int{}
 
-		if all_Z {
-			break
-		}
+	for _, node := range nodes {
+		CURR_INDEX = 0
+		iter_count := 0
+
+		node_list := []*Node{node}
+
+		visited_slice := []string{}
+		visited_map := make(map[string]bool)
+
+		for {
+			position_str := node_list[0].name + strconv.Itoa(CURR_INDEX)
+
+			if visited_map[position_str] && string([]rune(position_str)[2]) == "Z" {
+				// find index of previous visit
+				cycle_index := 0
+				z_indexes := []int{}
+				for j, pos := range visited_slice {
+					if pos == position_str {
+						cycle_index = j
+					}
+
+					if cycle_index != 0 && string([]rune(pos)[2]) == "Z" {
+						z_indexes = append(z_indexes, j)
+					}
+				}
+
+				i := 0
+				chunk := []int{}
+				if len(z_indexes) > 1 {
+					for i < len(z_indexes) - 1 {
+						chunk = append(chunk, z_indexes[i + 1] - z_indexes[i])
+						i++
+					}
+				}
+				chunk = append(chunk,  iter_count - z_indexes[len(z_indexes) - 1])
+				chunks = append(chunks, chunk)
+				remainders = append(remainders, cycle_index)
+				break
+			}
 			
-		nodes = update_nodes(nextTurn(), nodes)
-		iter_count++
+			visited_slice = append(visited_slice, position_str)
+			visited_map[position_str] = true
+			node_list = update_nodes(nextTurn(), node_list)
+			iter_count++
+		}
 	}
 
-	return iter_count
+	return chunks, remainders
 }
-
 
 func Solve(runAs string) {
 	dir, err := os.Getwd()
@@ -159,10 +186,48 @@ func Solve(runAs string) {
 		}
 	}
  
-	// SCORE_I += walk(start_nodes_I)
+	SCORE_I += walk(start_nodes_I)
 
-	CURR_INDEX = 0
-	SCORE_II += walk_rollout(start_nodes_II)
+	cycles, remainders := findCycles(start_nodes_II)
+	fmt.Println(cycles)
+	fmt.Println(remainders)
+
+	var curr_chunk_idcs [6]int
+
+	iters := remainders
+
+	for {
+		// find smallest iter
+		min_iter_idx := 0
+		min_iter := iters[0]
+		for i, iter := range iters {
+			if iter < min_iter {
+				min_iter_idx = i
+				min_iter = iter
+			}
+		}
+		// add corresponding cycle to iters
+		iters[min_iter_idx]	+= cycles[min_iter_idx][curr_chunk_idcs[min_iter_idx]]
+		curr_chunk_idcs[min_iter_idx]++
+		if curr_chunk_idcs[min_iter_idx] >= len(cycles[min_iter_idx]) {
+			curr_chunk_idcs[min_iter_idx] = 0
+		}
+
+		// check if all equal
+		all_equal := true
+		for _, iter := range iters {
+			if iter != iters[0] {
+				all_equal = false
+				break
+			}
+		}
+		if all_equal {
+			break
+		}
+		// else, repeat
+	}
+
+	SCORE_II = iters[0]
 
 	println("The solution for part I is:", SCORE_I)
 	println("The solution for part II is:", SCORE_II)
