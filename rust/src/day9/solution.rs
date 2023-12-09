@@ -32,8 +32,8 @@ pub fn part1_and_2(lines: Lines<BufReader<File>>) -> (i32, i32) {
                 let last_seq = sequences.last().unwrap();
 
                 let mut next_seq = vec![];
-                for i in 0..last_seq.len() - 1 {
-                    next_seq.push(last_seq[i + 1] - last_seq[i]);
+                for window in last_seq.windows(2) {
+                    next_seq.push(window[1] - window[0]);
                 }
 
                 sequences.push(next_seq);
