@@ -15,13 +15,14 @@ use day7::solve as day7_solve;
 mod day9;
 use day9::solve as day9_solve;
 
+mod naughty_even_days;
+use naughty_even_days::day10::solve as day10_solve;
+
 use std::env;
 
 fn main() {
     let args = env::args().collect::<Vec<String>>();
-    let day = args[1].chars().collect::<Vec<char>>()[0]
-        .to_digit(10)
-        .unwrap();
+    let day = args[1].parse::<i32>().unwrap();
     let run_as = args[2].chars().collect::<Vec<char>>()[0];
 
     match match day {
@@ -30,6 +31,7 @@ fn main() {
         5 => day5_solve(run_as),
         7 => day7_solve(run_as),
         9 => day9_solve(run_as),
+        10 => day10_solve(run_as),
         _ => Ok(()),
     } {
         Err(err) => println!("{}", err),
