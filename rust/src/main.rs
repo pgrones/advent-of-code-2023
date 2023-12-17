@@ -15,6 +15,9 @@ use day7::solve as day7_solve;
 mod day9;
 use day9::solve as day9_solve;
 
+mod day11;
+use day11::solve as day11_solve;
+
 mod naughty_even_days;
 use naughty_even_days::day10::solve as day10_solve;
 
@@ -32,6 +35,7 @@ fn main() {
         7 => day7_solve(run_as),
         9 => day9_solve(run_as),
         10 => day10_solve(run_as),
+        11 => day11_solve(run_as),
         _ => Ok(()),
     } {
         Err(err) => println!("{}", err),
