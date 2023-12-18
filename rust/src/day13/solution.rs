@@ -50,26 +50,25 @@ pub fn solve(run_as: char) -> Result<(), io::Error> {
         }
     }
 
-    let mut count = part1(&patterns);
+    let mut count = part1_and_2(&patterns, false);
     println!("Part 1: {}", count);
 
-    // let lines2 = read_lines_iterable(input_file)?;
-    // count = part2(lines2);
-    // println!("Part 2: {}", count);
+    count = part1_and_2(&patterns, true);
+    println!("Part 2: {}", count);
 
     Ok(())
 }
 
-fn part1(patterns: &Vec<Pattern>) -> i32 {
+fn part1_and_2(patterns: &Vec<Pattern>, part2: bool) -> i32 {
     let mut result = 0;
 
     for pattern in patterns {
-        let mut reflection = find_reflection(pattern.cols.clone());
+        let mut reflection = find_reflection(pattern.cols.clone(), part2);
 
         if reflection.is_some() {
             result += reflection.unwrap();
         } else {
-            reflection = find_reflection(pattern.rows.clone());
+            reflection = find_reflection(pattern.rows.clone(), part2);
             result += reflection.unwrap() * 100;
         }
     }
@@ -77,25 +76,44 @@ fn part1(patterns: &Vec<Pattern>) -> i32 {
     result
 }
 
-fn find_reflection(pattern: Vec<String>) -> Option<i32> {
+fn find_reflection(pattern: Vec<String>, part2: bool) -> Option<i32> {
+    let mut smudges = 0;
+
     'outer: for i in 1..pattern.len() {
         for j in i..pattern.len() {
             // if everything until the left edge was valid, we end up here - that's our reflection line
-            if i - (j - i) == 0 {
+            if i - (j - i) == 0 && (!part2 || smudges == 1) {
                 return Some(i as i32);
+            } else if i - (j - i) == 0 && part2 {
+                smudges = 0;
+                continue 'outer;
             }
 
             let left = &pattern[i - (j - i) - 1];
             let right = &pattern[j];
 
             // if the pair doesn't match, got to the next pair
-            if left != right {
+            if left != right && (!part2 || smudges > 0) {
+                smudges = 0;
                 continue 'outer;
+            } else if left != right && smudges == 0 {
+                for i in 0..left.len() {
+                    if left.chars().nth(i) != right.chars().nth(i) {
+                        smudges += 1;
+                    }
+                }
+
+                if smudges > 1 {
+                    smudges = 0;
+                    continue 'outer;
+                }
             }
         }
 
         // if everything until the right edge was valid, we end up here
-        return Some(i as i32);
+        if !part2 || smudges == 1 {
+            return Some(i as i32);
+        }
     }
 
     // otherwise there is no reflection on this axis
