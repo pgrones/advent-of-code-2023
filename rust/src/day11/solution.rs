@@ -2,7 +2,6 @@
 
 use std::{
     cmp,
-    collections::HashSet,
     io::{self},
 };
 
@@ -76,20 +75,8 @@ fn part1(space_map: Vec<Vec<char>>) -> i32 {
         }
     }
 
-    // using a Hashset is really important here, as the list gets longer and longer
-    let mut visited_paths = HashSet::new();
     for i in 0..galaxies.len() {
-        for j in 0..galaxies.len() {
-            if j == i {
-                continue;
-            }
-
-            if visited_paths.contains(&(i, j)) || visited_paths.contains(&(j, i)) {
-                continue;
-            }
-
-            visited_paths.insert((i, j));
-
+        for j in 0..i {
             result += (galaxies[i].0 - galaxies[j].0).abs() + (galaxies[i].1 - galaxies[j].1).abs();
         }
     }
@@ -110,20 +97,8 @@ fn part2(space_map: Vec<Vec<char>>, x_indexes: Vec<usize>, y_indexes: Vec<usize>
     }
 
     let mut expansions: i64 = 0;
-    // using a Hashset is really important here, as the list gets longer and longer
-    let mut visited_paths = HashSet::new();
     for i in 0..galaxies.len() {
-        for j in 0..galaxies.len() {
-            if j == i {
-                continue;
-            }
-
-            if visited_paths.contains(&(i, j)) || visited_paths.contains(&(j, i)) {
-                continue;
-            }
-
-            visited_paths.insert((i, j));
-
+        for j in 0..i {
             let min_x = cmp::min(galaxies[i].0, galaxies[j].0);
             let max_x = cmp::max(galaxies[i].0, galaxies[j].0);
 
