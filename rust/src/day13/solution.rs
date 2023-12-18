@@ -50,74 +50,103 @@ pub fn solve(run_as: char) -> Result<(), io::Error> {
         }
     }
 
-    let mut count = part1_and_2(&patterns, false);
+    let mut count = part1(&patterns);
     println!("Part 1: {}", count);
 
-    count = part1_and_2(&patterns, true);
+    count = part2(&patterns);
     println!("Part 2: {}", count);
 
     Ok(())
 }
 
-fn part1_and_2(patterns: &Vec<Pattern>, part2: bool) -> i32 {
+fn part1(patterns: &Vec<Pattern>) -> i32 {
     let mut result = 0;
 
     for pattern in patterns {
-        let mut reflection = find_reflection(pattern.cols.clone(), part2);
-
-        if reflection.is_some() {
-            result += reflection.unwrap();
-        } else {
-            reflection = find_reflection(pattern.rows.clone(), part2);
-            result += reflection.unwrap() * 100;
-        }
+        result += find_reflection(&pattern.cols, &pattern.rows);
     }
 
     result
 }
 
-fn find_reflection(pattern: Vec<String>, part2: bool) -> Option<i32> {
+fn part2(patterns: &Vec<Pattern>) -> i32 {
+    let mut result = 0;
+
+    for pattern in patterns {
+        result += find_smudges(&pattern.cols, &pattern.rows);
+    }
+
+    result
+}
+
+fn find_reflection(lines: &Vec<String>, pivoted_lines: &Vec<String>) -> i32 {
+    'outer: for i in 1..lines.len() {
+        for j in i..lines.len() {
+            // if everything until the left edge was valid, we end up here - that's our reflection line
+            if 2 * i - j == 0 {
+                return i as i32;
+            }
+
+            let left = &lines[2 * i - j - 1];
+            let right = &lines[j];
+
+            // if the pair doesn't match, got to the next pair
+            if left != right {
+                continue 'outer;
+            }
+        }
+
+        // if everything until the right edge was valid, we end up here
+        return i as i32;
+    }
+
+    // otherwise there is no reflection on this axis, so do the same for the other axis
+    find_reflection(pivoted_lines, lines) * 100
+}
+
+fn find_smudges(lines: &Vec<String>, pivoted_lines: &Vec<String>) -> i32 {
     let mut smudges = 0;
 
-    'outer: for i in 1..pattern.len() {
-        for j in i..pattern.len() {
+    'outer: for i in 1..lines.len() {
+        for j in i..lines.len() {
             // if everything until the left edge was valid, we end up here - that's our reflection line
-            if i - (j - i) == 0 && (!part2 || smudges == 1) {
-                return Some(i as i32);
-            } else if i - (j - i) == 0 && part2 {
-                smudges = 0;
+            // as long as we encountered exactly one smudge
+            if 2 * i - j == 0 {
+                if smudges == 1 {
+                    return i as i32;
+                }
+
                 continue 'outer;
             }
 
-            let left = &pattern[i - (j - i) - 1];
-            let right = &pattern[j];
+            let left = &lines[2 * i - j - 1];
+            let right = &lines[j];
 
             // if the pair doesn't match, got to the next pair
-            if left != right && (!part2 || smudges > 0) {
+            if left != right && smudges > 0 {
                 smudges = 0;
                 continue 'outer;
             } else if left != right && smudges == 0 {
                 for i in 0..left.len() {
+                    if smudges > 1 {
+                        smudges = 0;
+                        continue 'outer;
+                    }
+
                     if left.chars().nth(i) != right.chars().nth(i) {
                         smudges += 1;
                     }
-                }
-
-                if smudges > 1 {
-                    smudges = 0;
-                    continue 'outer;
                 }
             }
         }
 
         // if everything until the right edge was valid, we end up here
-        if !part2 || smudges == 1 {
-            return Some(i as i32);
+        // as long as we encountered exactly one smudge
+        if smudges == 1 {
+            return i as i32;
         }
     }
 
-    // otherwise there is no reflection on this axis
-    None
+    // otherwise there is no reflection on this axis, so do the same for the other
+    find_smudges(pivoted_lines, lines) * 100
 }
-
-// fn part2(lines: Lines<BufReader<File>>) -> u32 {}
