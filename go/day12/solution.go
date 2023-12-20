@@ -12,13 +12,14 @@ import (
 )
 
 func lineValid(line string, grouping []int) bool {
+	// return true
 	blocks := []string{}
 	for _, block := range strings.Split(line, ".") {
 		if block != "" {
 			blocks = append(blocks, block)
 		}
 	}
-	fmt.Println(blocks)
+	// fmt.Println(blocks)
 	if len(blocks) != len(grouping) {
 		return false
 	}
@@ -36,7 +37,6 @@ var SYMBOLS []rune
 func countValidCombinationsLineRec(line []rune, grouping []int, index int, ch chan int) { // int {
 	// fmt.Println(string(line))
 	// fmt.Println(index)
-	return
 	if index == len(line) {
 		// all question marks have been replaced, check line
 		if lineValid(string(line), grouping) {
@@ -69,18 +69,20 @@ var wg sync.WaitGroup
 
 func Part1(lines [][]rune, groupings [][]int) int {
 	solution := 0
-	ch := make(chan int)
+	ch := make(chan int, 8000)
 	for i := 0; i < len(lines); i++ {
 		wg.Add(1)
 		i := i
-		go func(i int) {
+		go func() {
 			defer wg.Done()
 			println("test", i)
-			// countValidCombinationsLineRec(lines[i], groupings[i], 0, ch)
-		}(i)
+			// ch <- 1
+			countValidCombinationsLineRec(lines[i], groupings[i], 0, ch)
+		}()
 		// solution += countValidCombinationsLineRec(lines[i], groupings[i], 0, ch)
 	}
 	wg.Wait()
+	close(ch)
 	for i := range ch {
 		solution += i
 	}
