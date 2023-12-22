@@ -23,8 +23,8 @@ func Solve(runAs string) {
     // fileScanner := bufio.NewScanner(readFile)
     // fileScanner.Split(bufio.ScanLines)
   
-    // SCORE_I := 0
-    // SCORE_II := 0
+    // SOLUTION_I := 0
+    // SOLUTION_II := 0
 	
     // for fileScanner.Scan() {
     //     // do something

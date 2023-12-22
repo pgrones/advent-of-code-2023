@@ -136,9 +136,9 @@ func countValidCombinationsLineRec(line []rune, grouping []int, index int) int {
 			return 0
 		}	
 	}
-	// if !soFarValid(string(line), grouping) {
-	// 	return 0
-	// }
+	if !soFarValid(string(line), grouping) {
+		return 0
+	}
 	if line[index] != rune('?') {
 		return countValidCombinationsLineRec(line, grouping, index+1)
 	} else {
@@ -160,11 +160,11 @@ func Part1_concurrent(lines [][]rune, groupings [][]int) int {
 	ch := make(chan int, len(lines))
 	for i := 0; i < len(lines); i++ {
 		wg.Add(1)
-		i := i
-		go func() {
-			defer wg.Done()
-			ch <- countValidCombinationsLineRec(lines[i], groupings[i], 0)
-		}()
+		go func(j int) {
+			// defer wg.Done()
+			ch <- countValidCombinationsLineRec(lines[j], groupings[j], 0)
+			wg.Done()
+		}(i)
 	}
 	wg.Wait()
 	close(ch)
@@ -227,7 +227,7 @@ func Solve(runAs string) {
 	fmt.Println("Sequential:", elapsed)
 	SOLUTION_I = Part1_concurrent(lines, groupings)
 	elapsed2 := time.Since(start)
-	fmt.Println("Concurrent:", elapsed2)
+	fmt.Println("Concurrent:", elapsed2-elapsed)
 	println("The solution for part I is:", SOLUTION_I)
 
 	// modify input lines for part II
@@ -248,9 +248,9 @@ func Solve(runAs string) {
 
 	// fmt.Println(lines_unfolded)
 	// fmt.Println(groupings_unfolded)
-	// start = time.Now()
-	// SOLUTION_II := Part1_concurrent(lines_unfolded, groupings_unfolded)
-	// elapsed = time.Since(start)
-	// fmt.Println("Concurrent:", elapsed)
-	// println("The solution for part II is:", SOLUTION_II)
+	start = time.Now()
+	SOLUTION_II := Part1_concurrent(lines_unfolded, groupings_unfolded)
+	elapsed = time.Since(start)
+	fmt.Println("Concurrent:", elapsed)
+	println("The solution for part II is:", SOLUTION_II)
 }
