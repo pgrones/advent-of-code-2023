@@ -32,6 +32,8 @@ func lineValid(line string, grouping []int) bool {
 
 
 func soFarValid(line string, grouping []int) bool {
+	// check if the block from the left so far match the first groups
+	// otherwise, return false
 	line_so_far := strings.Split(line, "?")[0]
 	blocks_so_far := []int{}
 	for _, block := range strings.Split(line_so_far, ".") {
@@ -39,60 +41,7 @@ func soFarValid(line string, grouping []int) bool {
 			blocks_so_far = append(blocks_so_far, len(block))
 		}
 	}
-	blocks_min := []int{}
-	for _, block := range strings.Split(strings.Replace(line, "?", "", -1), ".") {
-		if block != "" {
-			blocks_min = append(blocks_min, len(block))
-		}
-	}
-	blocks_max := []int{}
-	line_max := line
-	for strings.Contains(line_max, "?") {
-		index_first_question_mark := strings.Index(line_max, "?")
-		replace_with := ""
-		if index_first_question_mark > 0 {
-			if line_max[index_first_question_mark-1] == '.' {
-				replace_with = string(line_max[index_first_question_mark-1])
-			} else {
-				replace_with = "."
-			}
-		} else {
-			if line_max[index_first_question_mark+1] == '.' {
-				replace_with = "#"
-			} else {
-				replace_with = "."
-			}
-		}
-
-		line_max = line_max[:index_first_question_mark] + replace_with + line_max[index_first_question_mark+1:]
-	}
-	// line_max := strings.Replace(line,    "????????????????", "#.#.#.#.#.#.#.#.#", -1)
-	// line_max = strings.Replace(line_max, "???????????????",  "#.#.#.#.#.#.#.#.", -1)
-	// line_max = strings.Replace(line_max, "??????????????",   "#.#.#.#.#.#.#.#", -1)
-	// line_max = strings.Replace(line_max, "?????????????",    "#.#.#.#.#.#.#.", -1)
-	// line_max = strings.Replace(line_max, "????????????",     "#.#.#.#.#.#.#", -1)
-	// line_max = strings.Replace(line_max, "???????????",      "#.#.#.#.#.#.", -1)
-	// line_max = strings.Replace(line_max, "??????????",       "#.#.#.#.#.#", -1)
-	// line_max = strings.Replace(line_max, "?????????",        "#.#.#.#.#.", -1)
-	// line_max = strings.Replace(line_max, "????????",         "#.#.#.#.#", -1)
-	// line_max = strings.Replace(line_max, "???????",          "#.#.#.#.", -1)
-	// line_max = strings.Replace(line_max, "??????",           "#.#.#.#", -1)
-	// line_max = strings.Replace(line_max, "?????",            "#.#.#.", -1)
-	// line_max = strings.Replace(line_max, "????",             "#.#.#", -1)
-	// line_max = strings.Replace(line_max, "???",              "#.#.", -1)
-	// line_max = strings.Replace(line_max, "??",               "#.#", -1)
-	// line_max = strings.Replace(line_max, "?",                "#.", -1)
-	for _, block := range strings.Split(line_max, ".") {
-		if block != "" {
-			blocks_max = append(blocks_max, len(block))
-		}
-	}
-	if len(blocks_max) < len(grouping) {
-		// println("too few blocks")
-		return false
-	}
-	if len(blocks_min) > len(grouping) {
-		// println("too many blocks")
+	if len(blocks_so_far) > len(grouping) {
 		return false
 	}
 	for i, block := range blocks_so_far {
@@ -104,14 +53,75 @@ func soFarValid(line string, grouping []int) bool {
 		}
 	}
 
-	remaining_block_length := 0
-	for i := len(blocks_so_far); i < len(grouping); i++ {
-		remaining_block_length += grouping[i]
+	// compute lower bound for the number of blocks that can still be achieved
+	// if lower bound is higher than the number of groups, return false
+	blocks_min := []int{}
+	for _, block := range strings.Split(strings.Replace(line, "?", "", -1), ".") {
+		if block != "" {
+			blocks_min = append(blocks_min, len(block))
+		}
 	}
-	if (remaining_block_length + len(grouping) - len(blocks_so_far) - 1) > (len(line) - len(line_so_far)) {
-		// println("too little of line left")
+	if len(blocks_min) > len(grouping) {
+		// println("too many blocks")
 		return false
 	}
+
+	// compute upper bound for the number of blocks that can still be achieved
+	// if upper bound is lower than the number of groups, return false
+	blocks_max := []int{}
+	line_max := line
+	for strings.Contains(line_max, "?") {
+		index_first_question_mark := strings.Index(line_max, "?")
+		replace_with := ""
+		if index_first_question_mark > 0 {
+			if line_max[index_first_question_mark-1] == '.' {
+				replace_with = "#"
+			} else {
+				replace_with = "."
+			}
+		} else {
+			if line_max[index_first_question_mark+1] == '.' {
+				replace_with = "#"
+			} else {
+				replace_with = "."
+			}
+		}
+		line_max = line_max[:index_first_question_mark] + replace_with + line_max[index_first_question_mark+1:]
+	}
+	for _, block := range strings.Split(line_max, ".") {
+		if block != "" {
+			blocks_max = append(blocks_max, len(block))
+		}
+	}
+	if len(blocks_max) < len(grouping) {
+		// println("too few blocks")
+		return false
+	}
+
+	// check if the required number of hashtags can still be achieved
+	// if not, return false
+	hashtags := strings.Count(line, "#")
+	question_marks := strings.Count(line, "?")
+	required_hashtags := 0
+	for _, group := range grouping {
+		required_hashtags += group
+	}
+	if required_hashtags > (hashtags + question_marks) {
+		// println("not enough hashtags")
+		return false
+	}
+
+	// check if required number of blocks can still be achieved
+	// if not, return false
+	still_required_blocks := len(grouping) - len(blocks_so_far)
+	line_left := strings.TrimPrefix(line, line_so_far)
+	n_dots_left := strings.Count(line_left, ".")
+	if still_required_blocks - 1 > (n_dots_left + question_marks - (required_hashtags - hashtags)) {
+		// println("not enough blocks")
+		return false
+	}
+
+	println(line)
 	return true
 }
 
@@ -126,9 +136,9 @@ func countValidCombinationsLineRec(line []rune, grouping []int, index int) int {
 			return 0
 		}	
 	}
-	if !soFarValid(string(line), grouping) {
-		return 0
-	}
+	// if !soFarValid(string(line), grouping) {
+	// 	return 0
+	// }
 	if line[index] != rune('?') {
 		return countValidCombinationsLineRec(line, grouping, index+1)
 	} else {
@@ -212,12 +222,12 @@ func Solve(runAs string) {
 
 	// time the two runs
 	start := time.Now()
-	SOLUTION_I := Part1_concurrent(lines, groupings)
+	SOLUTION_I := Part1_sequential(lines, groupings)
 	elapsed := time.Since(start)
-	SOLUTION_I = Part1_sequential(lines, groupings)
+	fmt.Println("Sequential:", elapsed)
+	SOLUTION_I = Part1_concurrent(lines, groupings)
 	elapsed2 := time.Since(start)
-	fmt.Println("Concurrent:", elapsed)
-	fmt.Println("Sequential:", elapsed2)
+	fmt.Println("Concurrent:", elapsed2)
 	println("The solution for part I is:", SOLUTION_I)
 
 	// modify input lines for part II
@@ -238,9 +248,9 @@ func Solve(runAs string) {
 
 	// fmt.Println(lines_unfolded)
 	// fmt.Println(groupings_unfolded)
-	start = time.Now()
-	SOLUTION_II := Part1_concurrent(lines_unfolded, groupings_unfolded)
-	elapsed = time.Since(start)
-	fmt.Println("Concurrent:", elapsed)
-	println("The solution for part II is:", SOLUTION_II)
+	// start = time.Now()
+	// SOLUTION_II := Part1_concurrent(lines_unfolded, groupings_unfolded)
+	// elapsed = time.Since(start)
+	// fmt.Println("Concurrent:", elapsed)
+	// println("The solution for part II is:", SOLUTION_II)
 }
