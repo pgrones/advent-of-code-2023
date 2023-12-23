@@ -1,4 +1,4 @@
-use std::io;
+use std::{collections::HashMap, io};
 
 use crate::utils::{char_to_ascii, read_lines};
 
@@ -25,8 +25,54 @@ fn part1(init_sequence: &Vec<Vec<char>>) -> u32 {
         .fold(0, |acc, x| acc + x.iter().fold(0, |acc, &c| hash(acc, c)))
 }
 
-fn part2(lines: &Vec<Vec<char>>) -> u32 {
-    0
+fn part2(init_sequence: &Vec<Vec<char>>) -> u32 {
+    let mut boxes: Vec<HashMap<String, (u32, usize)>> = vec![];
+    for _ in 0..256 {
+        boxes.push(HashMap::new());
+    }
+
+    for (i, step) in init_sequence.iter().enumerate() {
+        let label = &step[0..step.iter().position(|x| ['=', '-'].contains(x)).unwrap()];
+        let operation = if step.contains(&'=') {
+            Operation::Add
+        } else {
+            Operation::Remove
+        };
+        let focal_length = step.last().unwrap();
+
+        let hash = label.iter().fold(0, |acc, &c| hash(acc, c));
+
+        let map = &mut boxes[hash as usize];
+
+        let label_as_string: String = label.iter().collect();
+
+        if operation == Operation::Add {
+            if map.contains_key(&label_as_string) {
+                map.get_mut(&label_as_string).unwrap().0 = focal_length.to_digit(10).unwrap();
+            } else {
+                map.insert(label_as_string, (focal_length.to_digit(10).unwrap(), i));
+            }
+        } else {
+            map.remove(&label_as_string);
+        }
+    }
+
+    let mut result = 0;
+
+    for (i, box_) in boxes.iter().enumerate() {
+        if box_.is_empty() {
+            continue;
+        }
+
+        let mut lenses = box_.values().collect::<Vec<&(u32, usize)>>();
+        lenses.sort_by(|&a, &b| a.1.cmp(&b.1));
+
+        result += lenses.iter().enumerate().fold(0, |acc, (j, &x)| {
+            acc + (i as u32 + 1) * (j as u32 + 1) * x.0
+        })
+    }
+
+    result
 }
 
 fn hash(mut curr_value: u32, c: char) -> u32 {
@@ -40,4 +86,10 @@ fn hash(mut curr_value: u32, c: char) -> u32 {
     curr_value %= 256;
     // The current value is the output of the HASH algorithm
     curr_value
+}
+
+#[derive(PartialEq)]
+enum Operation {
+    Add,
+    Remove,
 }
