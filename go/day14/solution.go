@@ -11,7 +11,7 @@ import (
 )
 
 
-func Part1(input [][]rune) int {
+func moveNorth(input [][]rune) {
 	for i := 0; i < len(input); i++ {
 		if i == 0 {
 			continue
@@ -26,32 +26,96 @@ func Part1(input [][]rune) int {
 					}
 					
 				}
-				
-				if i == 9 && j == 2 {
-					println(index)
-				}
 				input[index][j] = 'O'
 				input[i][j] = '.'
 			}
 		}
 	}
+}
 
-	// compute solution
-	// fmt.Println(input)
-	solution := 0
+
+func computeLoad(input [][]rune) int {
+	load := 0
 	for i, line := range input {
-		fmt.Println(string(line))
 		n_rocks := 0
 		for _, symbol := range line {
 			if symbol == 'O' {
-				// println("here")
 				n_rocks++
 			}
 		}
-		// println(n_rocks)
-		solution += n_rocks * (len(input) - i)
+		load += n_rocks * (len(input) - i)
 	}
-	return solution
+	return load
+}
+
+
+func Part1(input [][]rune) int {
+	moveNorth(input)
+	return computeLoad(input)
+}
+
+
+func pivotInput(input [][]rune) [][]rune {
+	new_input := make([][]rune, len(input))
+	for i := 0; i < len(input); i++ {
+		new_input[i] = make([]rune, len(input[0]))
+	}
+	for i := 0; i < len(input[0]); i++ {
+		for j := 0; j < len(input); j++ {
+			new_input[i][len(input)-j-1] = input[j][i]
+		}
+	}
+	return new_input
+}
+
+
+func Part2(input [][]rune) int {
+	known_configurations := make(map[string]int)
+	var (
+		loop_start int
+		loop_end int
+	)
+	for i := 0; i < 1_000_000_000; i++ {
+		for j := 0; j < 4; j++ {
+			moveNorth(input)
+			input = pivotInput(input)
+		}
+		key := ""
+		for _, line := range input {
+			key += string(line)
+		}
+		if known_configurations[key] > 0 {
+			println("Repetition detected at iteration:", i)
+			loop_start = known_configurations[key]
+			loop_end = i
+			break
+		} else {
+			known_configurations[key] = i
+		}
+	}
+	remaining_cycles := (1_000_000_000 - loop_start) % (loop_end - loop_start)
+	for i := 0; i < remaining_cycles - 1; i++ {
+		for j := 0; j < 4; j++ {
+			moveNorth(input)
+			input = pivotInput(input)
+		}
+	}
+	return computeLoad(input)
+}
+
+
+func loadInput(inputFile string) [][]rune {
+	readFile, err := os.Open(inputFile)
+    utils.CheckError(err)
+    fileScanner := bufio.NewScanner(readFile)
+    fileScanner.Split(bufio.ScanLines)
+	input := [][]rune{}
+	line := ""
+    for fileScanner.Scan() {
+        line = fileScanner.Text()
+		input = append(input, []rune(line))
+	}
+	return input
 }
 
 
@@ -61,28 +125,19 @@ func Solve(runAs string) {
 
 	var inputFile = fmt.Sprintf("%s/day14/input_%s.txt", dir, runAs)
 
-	println(inputFile)
+	input := loadInput(inputFile)
 
-	readFile, err := os.Open(inputFile)
-    utils.CheckError(err)
-    fileScanner := bufio.NewScanner(readFile)
-    fileScanner.Split(bufio.ScanLines)
-  
-
-	input := [][]rune{}
-	line := ""
-    for fileScanner.Scan() {
-        line = fileScanner.Text()
-		input = append(input, []rune(line))
-	}
-
-	fmt.Println(input)
 	start := time.Now()
-    SOLUTION_I := Part1(input)
+	SOLUTION_I := Part1(input)
 	elapsed := time.Since(start)
-	fmt.Println("Finished in:", elapsed)
-    SOLUTION_II := 0
-
 	println("The solution for part I is:", SOLUTION_I)
+	fmt.Println("Finished in:", elapsed)
+
+	input = loadInput(inputFile)
+	start = time.Now()
+    SOLUTION_II := Part2(input)
+	elapsed = time.Since(start)
 	println("The solution for part II is:", SOLUTION_II)
+	fmt.Println("Finished in:", elapsed)
+
 }
