@@ -2,9 +2,9 @@ package day16
 
 import (
 	utils "advent-of-code/utils"
+	"bufio"
 	"fmt"
 	"os"
-	"bufio"
 	// "time"
 	// "math"
 	// "strings"
@@ -53,21 +53,6 @@ func loadInput(inputFile string) {
 
 	tile_map = TileMap{tiles, len(tiles[0]), len(tiles)}
 }
-
-
-func paintTileMap() {
-	for i := 0; i < tile_map.size_x; i++ {
-		for j := 0; j < tile_map.size_y; j++ {
-			if tile_map.tiles[i][j].energized {				
-				print("\033[35m" + "#" + "\033[0m")
-			} else {
-				print(".")
-			}
-		}
-		println()
-	}
-}
-
 
 func propagate(coord Coord, direction string) {
 	x, y := coord.x, coord.y
@@ -199,7 +184,7 @@ func Solve(runAs string) {
 
 	var inputFile = fmt.Sprintf("%s/day16/input_%s.txt", dir, runAs)
 	loadInput(inputFile)
-	
+
     SOLUTION_I := Part1(Coord{0, 0}, "right")
     SOLUTION_II := Part2()
 
