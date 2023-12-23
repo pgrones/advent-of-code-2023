@@ -30,6 +30,6 @@ func Solve(runAs string) {
     //     // do something
 	// }
 
-	// println("The solution for part I is:", SCORE_I)
-	// println("The solution for part II is:", SCORE_II)
+	// println("The solution for part I is:", SOLUTION_I)
+	// println("The solution for part II is:", SOLUTION_II)
 }
