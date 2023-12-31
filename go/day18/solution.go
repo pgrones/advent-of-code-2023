@@ -131,7 +131,6 @@ func extendMap(trench_map TrenchMap, direction string, distance int) (TrenchMap)
 				for j := 0; j < n_rows; j++ {
 					trench_map.trenches[j] = append([]rune{'.'}, trench_map.trenches[j]...)
 					trench_map.colors[j] = append([]string{"#ffffff"}, trench_map.colors[j]...)
-
 				}
 			}
 			trench_map.min_col -= distance
@@ -142,45 +141,70 @@ func extendMap(trench_map TrenchMap, direction string, distance int) (TrenchMap)
 }
 
 func paintMap (trench_map TrenchMap) {
-	f, _ := os.Create("./day18/output.txt")
-	defer f.Close()
+	f1, _ := os.Create("./day18/output.txt")
+	f2, _ := os.Create("./day18/output.html")
+	defer f1.Close()
+	defer f2.Close()
+	f2.WriteString("<div style=\"font-family:Ubuntu Mono\">")
 	for i := 0; i <= trench_map.max_row - trench_map.min_row; i++ {
 		for j := 0; j <= trench_map.max_col - trench_map.min_col; j++ {
-			// color := trench_map.colors[i][j]
+			color := trench_map.colors[i][j]
 			// r, _ := strconv.ParseInt(color[1:3], 16, 0)
 			// g, _ := strconv.ParseInt(color[3:5], 16, 0)
 			// b, _ := strconv.ParseInt(color[5:7], 16, 0)
 			// fmt.Print("\033[38;2;" + strconv.Itoa(int(r)) + ";" + strconv.Itoa(int(g)) + ";" + strconv.Itoa(int(b)) + "m" + string(trench_map.trenches[i][j]) + "\033[0m")
-			f.WriteString(string(trench_map.trenches[i][j]))
+			f1.WriteString(string(trench_map.trenches[i][j]))
+			f2.WriteString(fmt.Sprintf("<span style=\"color:%s\">%s</span>", color, string(trench_map.trenches[i][j])))
 		}
 		// println()
-		f.WriteString("\n")
+		f1.WriteString("\n")
+		f2.WriteString("<br/>\n")
 	}
-	// fmt.Println(trench_map.colors)
+	f2.WriteString("</div>")
 }
 
 func fillTrench(trench_map TrenchMap) TrenchMap {
-	for _, row := range trench_map.trenches {
-		left_trench_idx, right_trench_idx := -1, -1
-		for i := 0; i < len(row); i++ {
-			if row[i] == '#' {
-				left_trench_idx = i
-				break
-			} else {
-				continue
+
+	var hash_found bool
+	var pointing string
+	var index int
+	
+	for i, row := range trench_map.trenches {
+		
+		indices := []int{}
+		hash_found = false
+		pointing = ""
+
+		for j, symbol := range row {
+			if symbol == '#' && !hash_found {
+				hash_found = true
+				if i > 0 && trench_map.trenches[i-1][j] == '#' {
+					pointing = "U"
+				} else if i < len(row)-1 && trench_map.trenches[i+1][j] == '#' {
+					pointing = "D"
+				} else {
+					pointing = ""
+				}
+				index = j
+			}
+			if hash_found && (symbol == '.' || j == len(row)-1) {
+				hash_found = false
+				x := j - 1
+				if j == len(row) - 1 {
+					x = j
+				}
+				if x > 0 && trench_map.trenches[i][x-1] == '#' && ((pointing == "U" && trench_map.trenches[i-1][x] == '#') || (pointing == "D" && trench_map.trenches[i+1][x] == '#')) {
+					continue
+				}
+				indices = append(indices, index)
 			}
 		}
-		for i := len(row)-1; i >= 0; i-- {
-			if row[i] == '#' {
-				right_trench_idx = i
-				break
-			} else {
-				continue
+		for j := 0; j < len(indices); j += 2 {
+			for i := indices[j] + 1; i < indices[j+1]; i++ {
+				if row[i] == '.' {
+					row[i] = '@'
+				}
 			}
-		}
-		println(left_trench_idx, right_trench_idx)
-		for i := left_trench_idx+1; i < right_trench_idx; i++ {
-			row[i] = '#'
 		}
 	}
 	return trench_map
@@ -191,7 +215,7 @@ func countTrenchVolume(trench_map TrenchMap) int {
 	volume := 0
 	for i := 0; i < len(trench_map.trenches); i++ {
 		for j := 0; j < len(trench_map.trenches[0]); j++ {
-			if trench_map.trenches[i][j] == '#' {
+			if trench_map.trenches[i][j] == '#' || trench_map.trenches[i][j] == '@' {
 				volume++
 			}
 			// if volume % 1000 == 0 {
@@ -213,14 +237,11 @@ func Part1(directions []string, distances []int, hex_colors []string) int {
 	var distance int
 	var color string
 
-	println(curr_row, curr_col)
-
 	for i := 0; i < len(directions); i++ {
 		direction = directions[i]
 		distance = distances[i]
 		color = hex_colors[i]
 		trench_map, curr_row, curr_col = digTrench(trench_map, curr_row, curr_col, direction, distance, color)
-		println(curr_row, curr_col)
 	}
 
 	// paintMap(trench_map)
@@ -243,6 +264,7 @@ func Solve(runAs string) {
 
 	var inputFile = fmt.Sprintf("%s/day18/input_%s.txt", dir, runAs)
 
+	// PART I
 	directions := []string{}
 	distances := []int{}
 	hex_colors := []string{}
@@ -265,6 +287,44 @@ func Solve(runAs string) {
     SOLUTION_I := Part1(directions, distances, hex_colors)
 	println("The solution for part I is:", SOLUTION_I)
 
-	// SOLUTION_II := 0
-	// println("The solution for part II is:", SOLUTION_II)
+	// PART II
+	directions = []string{}
+	distances = []int{}
+	hex_colors = []string{}
+
+	readFile, err = os.Open(inputFile)
+    utils.CheckError(err)
+    fileScanner = bufio.NewScanner(readFile)
+    fileScanner.Split(bufio.ScanLines)
+
+	for fileScanner.Scan() {
+        line := fileScanner.Text()
+		line_split := strings.Split(line, " ")
+		hex_number := strings.Trim(line_split[2], "()")
+
+		distance, _ := strconv.ParseInt(hex_number[1:6], 16, 0)
+		distances = append(distances, int(distance))
+
+		direction_int := hex_number[6]
+		direction := ""
+		switch direction_int {
+			case '0':
+				direction = "R"
+			case '1':
+				direction = "D"
+			case '2':
+				direction = "L"
+			case '3':
+				direction = "U"
+		}
+		directions = append(directions, direction)
+
+		hex_colors = append(hex_colors, hex_number)
+	}
+
+	fmt.Println(distances)
+	fmt.Println(directions)
+
+	SOLUTION_II := Part1(directions, distances, hex_colors)
+	println("The solution for part II is:", SOLUTION_II)
 }
