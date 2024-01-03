@@ -104,12 +104,11 @@ pub fn solve(run_as: char) -> Result<(), io::Error> {
         ratings.push(rating);
     }
 
-    let mut count = part1(&workflows, &ratings);
+    let count = part1(&workflows, &ratings);
     println!("Part 1: {}", count);
 
-    // let lines2 = read_lines_iterable(input_file)?;
-    // count = part2(lines2);
-    // println!("Part 2: {}", count);
+    let count2 = part2(&workflows);
+    println!("Part 2: {}", count2);
 
     Ok(())
 }
@@ -167,6 +166,75 @@ fn evaluate_destination(
     )
 }
 
-// fn part2(lines: Lines<BufReader<File>>) -> u32 {
-//     0
-// }
+fn part2(workflows: &Vec<Workflow>) -> u64 {
+    let mut result = 0;
+    let start_workflow = workflows.iter().find(|&x| x.name == "in").unwrap();
+
+    let mut ratings = HashMap::from([
+        ('m', (1u64, 4000u64)),
+        ('a', (1u64, 4000u64)),
+        ('s', (1u64, 4000u64)),
+        ('x', (1u64, 4000u64)),
+    ]);
+
+    result += execute_step_2(start_workflow, &mut ratings, workflows);
+
+    result
+}
+
+fn execute_step_2(
+    workflow: &Workflow,
+    ratings: &mut HashMap<char, (u64, u64)>,
+    workflows: &Vec<Workflow>,
+) -> u64 {
+    let mut result = 0;
+    for condition in &workflow.conditions {
+        let mut copy = ratings.clone();
+        let value = ratings.get(&condition.variable).unwrap();
+        let mut is_hit = false;
+
+        if condition.operation == Operation::GreaterThan && &value.1 > &u64::from(condition.value) {
+            let entry = ratings.entry(condition.variable).or_insert((0, 0));
+            let copy_entry = copy.entry(condition.variable).or_insert((0, 0));
+
+            *copy_entry = (condition.value as u64 + 1, entry.1);
+            *entry = (entry.0, condition.value as u64);
+
+            is_hit = true;
+        } else if condition.operation == Operation::LowerThan
+            && &value.0 < &u64::from(condition.value)
+        {
+            let entry = ratings.entry(condition.variable).or_insert((0, 0));
+            let copy_entry = copy.entry(condition.variable).or_insert((0, 0));
+
+            *copy_entry = (entry.0, condition.value as u64 - 1);
+            *entry = (condition.value as u64, entry.1);
+
+            is_hit = true;
+        }
+
+        if is_hit {
+            result += evaluate_destination_2(condition.destination.clone(), &mut copy, workflows);
+        }
+    }
+
+    result + evaluate_destination_2(workflow.destination.clone(), ratings, workflows)
+}
+
+fn evaluate_destination_2(
+    destination: String,
+    ratings: &mut HashMap<char, (u64, u64)>,
+    workflows: &Vec<Workflow>,
+) -> u64 {
+    if destination == "A" {
+        return ratings.values().map(|&x| 1 + (x.1 - x.0)).product();
+    } else if destination == "R" {
+        return 0;
+    }
+
+    execute_step_2(
+        workflows.iter().find(|&x| x.name == destination).unwrap(),
+        ratings,
+        workflows,
+    )
+}
