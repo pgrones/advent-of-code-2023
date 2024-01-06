@@ -121,19 +121,19 @@ fn get_next_paths(
     result
 }
 
-// fn render_map(hiking_map: &Vec<Vec<char>>, curr_pos: (usize, usize), steps: &Vec<u32>) {
-//     for y in 0..hiking_map.len() {
-//         for x in 0..hiking_map[0].len() {
-//             if curr_pos == (x, y) {
-//                 print!("O");
-//             } else {
-//                 print!("{}", hiking_map[y][x]);
-//             }
-//         }
-//         println!();
-//     }
-//     println!("{:?}", steps);
-// }
+fn render_map(hiking_map: &Vec<Vec<char>>, curr_pos: (usize, usize), steps: &Vec<u32>) {
+    for y in 0..hiking_map.len() {
+        for x in 0..hiking_map[0].len() {
+            if curr_pos == (x, y) {
+                print!("O");
+            } else {
+                print!("{}", hiking_map[y][x]);
+            }
+        }
+        println!();
+    }
+    println!("{:?}", steps);
+}
 
 fn part2(lines: Lines<BufReader<File>>) -> u32 {
     0
