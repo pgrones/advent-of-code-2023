@@ -20,6 +20,10 @@ pub fn solve(run_as: char) -> Result<(), io::Error> {
     Ok(())
 }
 
-fn part1(lines: Lines<BufReader<File>>) -> u32 {}
+fn part1(lines: Lines<BufReader<File>>) -> u32 {
+    0
+}
 
-fn part2(lines: Lines<BufReader<File>>) -> u32 {}
+fn part2(lines: Lines<BufReader<File>>) -> u32 {
+    0
+}
