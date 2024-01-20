@@ -10,7 +10,7 @@ import (
 	day14 "advent-of-code/day14"
 	day16 "advent-of-code/day16"
 	day18 "advent-of-code/day18"
-	// day20 "advent-of-code/day20"
+	day20 "advent-of-code/day20"
 	// day22 "advent-of-code/day22"
 	// day24 "advent-of-code/day24"
 	"os"
@@ -37,8 +37,8 @@ func main() {
 			day16.Solve(os.Args[2])
 		case "18":
 			day18.Solve(os.Args[2])
-		// case "20":
-		// 	day20.Solve(os.Args[2])
+		case "20":
+			day20.Solve(os.Args[2])
 		// case "22":
 		// 	day22.Solve(os.Args[2])
 		// case "24":
