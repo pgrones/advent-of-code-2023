@@ -1,12 +1,11 @@
 use std::{
     cmp,
-    fs::File,
-    io::{self, BufReader, Lines},
+    io::{self},
     u32::MAX,
     vec,
 };
 
-use crate::utils::{read_lines, read_lines_iterable};
+use crate::utils::read_lines;
 
 pub fn solve(run_as: char) -> Result<(), io::Error> {
     let input_file = format!("src/day17/input_{run_as}.txt");
@@ -19,8 +18,7 @@ pub fn solve(run_as: char) -> Result<(), io::Error> {
     let mut count = part1(city_map);
     println!("Part 1: {}", count);
 
-    let lines2 = read_lines_iterable(input_file)?;
-    count = part2(lines2);
+    count = part2();
     println!("Part 2: {}", count);
 
     Ok(())
@@ -122,7 +120,7 @@ fn computemagic(
     (global_min, successor)
 }
 
-fn part2(lines: Lines<BufReader<File>>) -> u32 {
+fn part2() -> u32 {
     0
 }
 

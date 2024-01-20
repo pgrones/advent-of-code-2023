@@ -141,12 +141,21 @@ fn part2(hiking_map: &Vec<Vec<char>>) -> u32 {
     let start = (1usize, 1usize);
     let last_pos = (1usize, 0usize);
     let end = (hiking_map[0].len() - 2, hiking_map.len() - 1);
+    let mut longest_path = 0;
 
-    let mut steps = vec![(0, HashSet::from([last_pos]))];
+    let mut steps = HashSet::new();
 
-    traverse2(hiking_map, last_pos, start, end, &mut steps, 0);
+    traverse2(
+        hiking_map,
+        last_pos,
+        start,
+        end,
+        1,
+        &mut steps,
+        &mut longest_path,
+    );
 
-    steps.iter().map(|x| x.0).max().unwrap()
+    longest_path
 }
 
 fn traverse2(
@@ -154,35 +163,39 @@ fn traverse2(
     last_pos: (usize, usize),
     curr_pos: (usize, usize),
     end_pos: (usize, usize),
-    steps: &mut Vec<(u32, HashSet<(usize, usize)>)>,
-    step_pos: usize,
+    current_length: u32,
+    steps: &mut HashSet<(usize, usize)>,
+    longest_path: &mut u32,
 ) {
-    steps[step_pos].0 += 1;
+    if curr_pos == end_pos {
+        if current_length > *longest_path {
+            *longest_path = current_length;
+            println!("{}", longest_path);
+        }
 
-    if !steps[step_pos].1.insert(curr_pos) {
-        steps.remove(step_pos);
         return;
     }
 
-    if curr_pos == end_pos {
+    let paths = get_next_paths(hiking_map, last_pos, curr_pos, false);
+
+    if paths.len() > 1 && !steps.insert(curr_pos) {
         return;
     }
 
     // render_map(hiking_map, curr_pos, steps);
     // thread::sleep(time::Duration::from_millis(200));
 
-    let paths = get_next_paths(hiking_map, last_pos, curr_pos, false);
-
-    let steps_copy = steps.clone();
-
     for i in 0..paths.len() {
-        let mut pos = step_pos;
+        let mut steps_copy = steps.clone();
 
-        if i > 0 {
-            steps.push(steps_copy[step_pos].clone());
-            pos = steps.len() - 1;
-        }
-
-        traverse2(hiking_map, curr_pos, paths[i], end_pos, steps, pos);
+        traverse2(
+            hiking_map,
+            curr_pos,
+            paths[i],
+            end_pos,
+            current_length + 1,
+            &mut steps_copy,
+            longest_path,
+        );
     }
 }
